@@ -180,39 +180,112 @@ The new loss for 2 assets portfolio:
 
 \begin{align*}
     L &=
-    \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
-    + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
-    + \sum_{i = 1}^{T} \left[
-        w_1 (\lambda_{1, i} - \hat{\lambda}_{1, i}) + w_2 (\lambda_{1, i} - \hat{\lambda}_{1, i})
-    \right] \\
-    &= \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
-    + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
-    + \lVert w_1 \lambda_1 - w_1 \hat{\lambda}_1 + w_1 \lambda_2 - w_2 \hat{\lambda}_2 \rVert^2
+    \alpha
+    \left(
+        \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
+        + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+    \right)
+    + (1 - \alpha)
+    % \left(
+            \sum_{i = 1}^{T}
+            \left[
+                w_1 (\lambda_{1, i} - \hat{\lambda}_{1, i}) + w_2 (\lambda_{1, i} - \hat{\lambda}_{1, i})
+            \right] 
+    % \right)
+    \\
+    &= \alpha
+    \left(
+        \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
+        + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+    \right)
+    + (1 - \alpha)
+    % \left(
+        \lVert w_1 \lambda_1 - w_1 \hat{\lambda}_1 + w_2 \lambda_2 - w_2 \hat{\lambda}_2 \rVert^2
+    % \right)
+    \\
+    &= \alpha
+    \left(
+        \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
+        + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+    \right)
+    + (1 - \alpha)
+    % \left(
+        \lVert w_1 (\lambda_1 - \hat{\lambda}_1) + w_2 (\lambda_2 - \hat{\lambda}_2) \rVert^2
+    % \right)
+    \\
+    &= \alpha
+    \left(
+        \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
+        + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+    \right)
+    + (1 - \alpha)
+    \mathbf{1} (\mathbf{\gamma} \mathbf{w})
+    \\
 \end{align*}
 
+
+Where:
+
+$$
+\mathbf{\gamma} = \left[
+\begin{matrix}
+        \lambda_{1, 1} - \hat{\lambda}_{1, 1} & \lambda_{2, 1} - \hat{\lambda}_{2, 1} \\
+        \lambda_{1, 2} - \hat{\lambda}_{1, 2} & \lambda_{2, 2} - \hat{\lambda}_{2, 2} \\
+        \lambda_{1, 3} - \hat{\lambda}_{1, 3} & \lambda_{2, 3} - \hat{\lambda}_{2, 3} \\
+        \vdots & \vdots \\
+        \lambda_{1, T} - \hat{\lambda}_{1, T} & \lambda_{2, T} - \hat{\lambda}_{2, T} \\
+\end{matrix}
+\right]
+$$
 
 Or:
 
 \begin{align*}
     L &=
-    \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
-    + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
-    + \sum_{i = 1}^{T} \left[
-        w_1 (\lambda_{1, i} - \hat{\lambda}_{1, i}) \cdot w_2 (\lambda_{1, i} - \hat{\lambda}_{1, i})
-    \right] \\
-    &= \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
-    + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
-    + \left< w_1 (\lambda_1 - \hat{\lambda}_1), w_2 (\lambda_2 - \hat{\lambda}_2) \right>
+    \alpha
+    \left(
+        \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
+        + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+    \right)
+    + (1 - \alpha)
+    % \left(
+        \sum_{i = 1}^{T} \left[
+            w_1 (\lambda_{1, i} - \hat{\lambda}_{1, i}) \cdot w_2 (\lambda_{1, i} - \hat{\lambda}_{1, i})
+        \right]
+    % \right)
+    \\
+    &= \alpha
+    \left(
+        \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
+        + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+    \right)
+    + (1 - \alpha)
+    % \left(
+        \left< w_1 (\lambda_1 - \hat{\lambda}_1), w_2 (\lambda_2 - \hat{\lambda}_2) \right>
+    % \right)
 \end{align*}
 
+(for more assets, can maybe use the matrix format and minimize the forbenius norm of the matrix)
 
+The estimation works as:
 
+\begin{enumerate}
+    \item We define initia values for $w_1, w_2$.
+    \item Optimize the function and get $\lambda_i$ for $\forall \ i$.
+    \item Plug-in $\lambda_{i, t+1}$ in the tangency portfolio formula and get $\mathbf{w}$.
+    \item Use the values of $\mathbf{w}$ as the new $w_1, w_2$.
+    \item Repeat step 2 to 4 until change in $\Delta \mathbf{w} < \varepsilon$ 
+\end{enumerate}
 
+\section{How to compare?}
 
+Compare the results with the ones that only use
 
+$$
+L = \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2 + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+$$
 
-
-
+to predict $\hat{\lambda}_{i, t+1}$ and directly get the weights of the tangency portfolio.
 
 
 \end{document}
