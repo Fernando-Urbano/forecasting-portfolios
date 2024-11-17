@@ -1,0 +1,218 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+\usepackage{amssymb}
+\usepackage{color}
+\usepackage{lscape}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+% Define the header
+\fancyfoot[R]{Author}
+\renewcommand{\footrulewidth}{0.2pt}
+
+\fancyhead[L]{Draft Portfolio}
+\fancyhead[R]{Draft Portfolio}
+
+\usepackage{graphicx}
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+\renewcommand{\thesubsection}{\thesection.\alph{subsection}}
+\newcommand{\divider}{\vspace{1em}\hrule\vspace{1em}}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{Rstyle}{
+  backgroundcolor=\color{backcolour},   
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{blue},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=true,                  
+  tabsize=2,
+  language=R
+}
+
+\title{Forecasting Portfolios}
+\author{Author}
+\date{Autumn 2024}
+
+% Define colors
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Setup the listings package
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\newenvironment{colorparagraph}[1]{\par\color{#1}}{\par}
+\definecolor{questioncolor}{RGB}{20, 40, 150}
+\definecolor{tacolor}{RGB}{200, 0, 0}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+\maketitle
+
+\section{Goal}
+
+Find optimal portfolio weights based on MV approach considering that the error of expected return prediction between assets can be correlated.
+
+\section{Definitions}
+
+The weights of the tangency portfolio with $k$ assets are defined by:
+
+$$
+\textbf{w}_t = \dfrac{\Sigma^{-1} \Lambda}{\textbf{1} \Sigma^{-1} \Lambda_t}
+$$
+
+Where $\Lambda_{t+1}^{\top} = \left[  \lambda_{1, t+1}, \lambda_{2, t+1}, \lambda_{3, t+1}, \ldots, \lambda_{k, t+1} \right]$ and
+
+$$
+\lambda_{i, t+1} := \mathbb{E}[\tilde{r}_{i, t+1}], \quad \text{for} \ i = 1, \ldots, k
+$$
+
+$\mathbb{E}[\tilde{r}_{i, t+1}]$ is the expected excess return for asset $i$, which can be calculated by an unknown function $f_i(X)$:
+
+$$
+\mathbb{E}[\tilde{r}_{i, t+1}] = f_i(X_t)
+$$
+
+In sample:
+
+$$
+\hat{\lambda}_{i, t+1} = \hat{f}_i(X_t)
+$$
+
+$\hat{\lambda}_{i, t+1}$ can be estimated by any machine learning model.
+
+For instance, in a deep neural network with no hidden layer, squared error loss and no activation function (linear regression) aiming to estimate the $\hat{\lambda}_{i, t+1}$ for $i = 1, \ldots, k$ with the same features, the general loss function is defined by:
+
+$$
+L = \sum_{i = 1}^{k} \lVert \lambda_i - \hat{\lambda}_i \rVert^2
+$$
+
+Where $\lambda_i$ is a vector of the time-series excess returns of asset $i$ and $\hat{\lambda}_i$ is the estimated $\lambda_i$.
+
+$$
+\lambda_i^{\top} := \left[ \lambda_{i, 1}, \lambda_{i, 2}, \ldots, \lambda_{i, T} \right]
+$$
+
+$$
+\hat{\lambda}_i^{\top} := \left[ \hat{\lambda}_{i, 1}, \hat{\lambda}_{i, 2}, \ldots, \hat{\lambda}_{i, T} \right]
+$$
+
+As mentioned, the predictions for any $t$ considering the example of the linear regression:
+
+\begin{align*}
+    \hat{\lambda}_{i, t} = \hat{f}_i(X_{t-1}) = \hat{\theta}^{\top} X_{t-1}
+\end{align*}
+
+Where $\hat{\theta}$ is the vector of estimated parameters considering any loss function (in our current example, considering squared error loss).
+
+For an example, lets consider that we have two assets in our portfolio:
+
+$$
+L = \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2 + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+$$
+
+For a deep neural network with no hidden layers, the predictions considering $X$ are independent, since the parameters used to estimate $\hat{\lambda}_1$ are different from the ones used to estimate $\hat{\lambda}_2$ 
+
+$$
+L = \lVert \lambda_1 - \theta_{1}^{\top} \mathbf{X} \rVert^2 + \lVert \lambda_2 - \theta_{2}^{\top} \mathbf{X} \rVert^2
+$$
+
+Where $\theta_{1}$ are the parameters used for the estimation of asset $1$ and $\hat{\theta}_{2}$ are the parameters used for the estimation of asset $2$.
+
+$$
+\theta := \{ \theta_1, \theta_2 \}
+$$
+
+$$
+\hat{\theta}_1, \hat{\theta}_2 = \text{argmin}_{\theta_1, \theta_2} L
+$$
+
+\section{Our Suggestion}
+
+\begin{itemize}
+    \item A prediction of returns is more important if we have more weight for it.
+    \item We want the error of the predictions to compensate each other at any given time: for instance, if in time $t$, you have an error that is positive for asset $1$, you want a negative error in your prediction for asset $2$ in the same time. Nonetheless, if asset $1$ is more important in the portfolio than asset $2$, you should weight the error of asset $1$ more than the one of asset two.
+\end{itemize}
+
+The new loss for 2 assets portfolio:
+
+
+\begin{align*}
+    L &=
+    \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
+    + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+    + \sum_{i = 1}^{T} \left[
+        w_1 (\lambda_{1, i} - \hat{\lambda}_{1, i}) + w_2 (\lambda_{1, i} - \hat{\lambda}_{1, i})
+    \right] \\
+    &= \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
+    + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+    + \lVert w_1 \lambda_1 - w_1 \hat{\lambda}_1 + w_1 \lambda_2 - w_2 \hat{\lambda}_2 \rVert^2
+\end{align*}
+
+
+Or:
+
+\begin{align*}
+    L &=
+    \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
+    + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+    + \sum_{i = 1}^{T} \left[
+        w_1 (\lambda_{1, i} - \hat{\lambda}_{1, i}) \cdot w_2 (\lambda_{1, i} - \hat{\lambda}_{1, i})
+    \right] \\
+    &= \lVert \lambda_1 - \hat{\lambda}_1 \rVert^2
+    + \lVert \lambda_2 - \hat{\lambda}_2 \rVert^2
+    + \left< w_1 (\lambda_1 - \hat{\lambda}_1), w_2 (\lambda_2 - \hat{\lambda}_2) \right>
+\end{align*}
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
